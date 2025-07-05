@@ -39,14 +39,48 @@ class CurrentStockPriceInput(BaseModel):
 @tool(args_schema=CurrentStockPriceInput)
 def get_current_stock_price(ticker: str) -> str:
     """Call this function with only a company's ticker symbol, to get the current stock price for the company."""
-    stock_info = yf.Ticker(ticker)
-
     try:
-        current_price = stock_info.info["currentPrice"]
-        return f"The current price is USD {current_price}"
-    except (KeyError, UnboundLocalError):
-        copilot_logger.error(f"{ticker} was passed as ticker and an error occurred for the get_current_stock_price tool.")
-        ss.error_message = "An error occurred."
+        # Clean up the ticker symbol
+        ticker = ticker.strip().upper()
+        
+        # Create ticker object
+        stock_info = yf.Ticker(ticker)
+        
+        # Get current price - try multiple methods
+        current_price = None
+        
+        # Method 1: Try info['currentPrice']
+        try:
+            current_price = stock_info.info.get("currentPrice")
+        except:
+            pass
+        
+        # Method 2: Try info['regularMarketPrice']
+        if not current_price:
+            try:
+                current_price = stock_info.info.get("regularMarketPrice")
+            except:
+                pass
+        
+        # Method 3: Try history for most recent price
+        if not current_price:
+            try:
+                hist = stock_info.history(period="1d")
+                if not hist.empty:
+                    current_price = hist['Close'].iloc[-1]
+            except:
+                pass
+        
+        if current_price:
+            # Get company name for confirmation
+            company_name = stock_info.info.get("longName", ticker)
+            return f"The current price of {company_name} ({ticker}) is USD ${current_price:.2f}"
+        else:
+            return f"Unable to retrieve current price for ticker symbol {ticker}. Please verify the ticker symbol is correct."
+            
+    except Exception as e:
+        copilot_logger.error(f"Error getting stock price for {ticker}: {str(e)}")
+        return f"An error occurred while retrieving the stock price for {ticker}. Please try again or verify the ticker symbol."
 
 
 def handle_sec_api_errors(error_message: str):
@@ -70,12 +104,38 @@ def retriever(query):
         query_upper = query.upper()
         possible_ticker = None
         
-        # Common company tickers for testing
-        tickers = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'META', 'NVDA', 'BRK', 'JPM', 'V']
-        for ticker in tickers:
-            if ticker in query_upper:
+        # Company name to ticker mapping for better detection
+        company_mappings = {
+            'APPLE': 'AAPL',
+            'MICROSOFT': 'MSFT', 
+            'GOOGLE': 'GOOGL',
+            'ALPHABET': 'GOOGL',
+            'AMAZON': 'AMZN',
+            'TESLA': 'TSLA',
+            'META': 'META',
+            'FACEBOOK': 'META',
+            'NVIDIA': 'NVDA',
+            'BERKSHIRE': 'BRK',
+            'JPM': 'JPM',
+            'JP MORGAN': 'JPM',
+            'VISA': 'V'
+        }
+        
+        # First check for company names
+        for company_name, ticker in company_mappings.items():
+            if company_name in query_upper:
                 possible_ticker = ticker
                 break
+        
+        # If no company name found, check for direct ticker matches
+        if not possible_ticker:
+            tickers = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'META', 'NVDA', 'BRK', 'JPM', 'V']
+            for ticker in tickers:
+                # Use word boundaries to avoid partial matches
+                import re
+                if re.search(r'\b' + ticker + r'\b', query_upper):
+                    possible_ticker = ticker
+                    break
         
         texts = []
         
