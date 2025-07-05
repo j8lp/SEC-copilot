@@ -23,10 +23,17 @@ from utils.prompts import prompt
 
 ss = st.session_state
 
-model = ChatOpenAI(
-    model="gpt-3.5-turbo-16k", 
-    openai_api_key=ss.configurations["openai_api_key"]
-)
+# Cache for stock prices to avoid rate limiting
+if 'stock_price_cache' not in ss:
+    ss.stock_price_cache = {}
+    ss.stock_price_cache_time = {}
+
+def get_openai_model():
+    """Get initialized OpenAI model with API key from session state."""
+    return ChatOpenAI(
+        model="gpt-3.5-turbo-16k", 
+        openai_api_key=ss.configurations["openai_api_key"]
+    )
 
 
 class CurrentStockPriceInput(BaseModel):
@@ -39,48 +46,101 @@ class CurrentStockPriceInput(BaseModel):
 @tool(args_schema=CurrentStockPriceInput)
 def get_current_stock_price(ticker: str) -> str:
     """Call this function with only a company's ticker symbol, to get the current stock price for the company."""
+    import time
+    import random
+    from datetime import datetime, timedelta
+    
     try:
         # Clean up the ticker symbol
         ticker = ticker.strip().upper()
         
+        # Check cache first (cache for 5 minutes)
+        if ticker in ss.stock_price_cache:
+            cache_time = ss.stock_price_cache_time.get(ticker, datetime.min)
+            if datetime.now() - cache_time < timedelta(minutes=5):
+                return ss.stock_price_cache[ticker]
+        
+        # Add a small random delay to avoid rate limiting
+        time.sleep(random.uniform(0.5, 1.5))
+        
         # Create ticker object
         stock_info = yf.Ticker(ticker)
         
-        # Get current price - try multiple methods
+        # Get current price - try multiple methods with rate limit handling
         current_price = None
+        company_name = ticker
         
-        # Method 1: Try info['currentPrice']
+        # Method 1: Try history for most recent price (most reliable)
         try:
-            current_price = stock_info.info.get("currentPrice")
-        except:
-            pass
+            hist = stock_info.history(period="1d", interval="1d")
+            if not hist.empty:
+                current_price = hist['Close'].iloc[-1]
+        except Exception as e:
+            if "429" in str(e) or "Too Many Requests" in str(e):
+                rate_limit_msg = (
+                    f"Yahoo Finance is currently rate-limiting requests. "
+                    f"Please try again in a few minutes. For {ticker}, "
+                    f"you can check the price manually at "
+                    f"https://finance.yahoo.com/quote/{ticker}"
+                )
+                return rate_limit_msg
         
-        # Method 2: Try info['regularMarketPrice']
+        # Method 2: Try basic info (if history fails)
         if not current_price:
             try:
-                current_price = stock_info.info.get("regularMarketPrice")
-            except:
-                pass
+                basic_info = stock_info.basic_info
+                if basic_info and 'previousClose' in basic_info:
+                    current_price = basic_info['previousClose']
+                    company_name = basic_info.get('longName', ticker)
+            except Exception as e:
+                if "429" in str(e) or "Too Many Requests" in str(e):
+                    rate_limit_msg = (
+                        f"Yahoo Finance is currently rate-limiting requests. "
+                        f"Please try again in a few minutes. For {ticker}, "
+                        f"you can check the price manually at "
+                        f"https://finance.yahoo.com/quote/{ticker}"
+                    )
+                    return rate_limit_msg
         
-        # Method 3: Try history for most recent price
-        if not current_price:
-            try:
-                hist = stock_info.history(period="1d")
-                if not hist.empty:
-                    current_price = hist['Close'].iloc[-1]
-            except:
-                pass
-        
-        if current_price:
-            # Get company name for confirmation
-            company_name = stock_info.info.get("longName", ticker)
-            return f"The current price of {company_name} ({ticker}) is USD ${current_price:.2f}"
+        if current_price and current_price > 0:
+            result = (
+                f"The current price of {company_name} ({ticker}) is "
+                f"USD ${current_price:.2f}. Note: Data may be delayed "
+                f"by up to 20 minutes."
+            )
+            # Cache the result
+            ss.stock_price_cache[ticker] = result
+            ss.stock_price_cache_time[ticker] = datetime.now()
+            return result
         else:
-            return f"Unable to retrieve current price for ticker symbol {ticker}. Please verify the ticker symbol is correct."
+            return (
+                f"Unable to retrieve current price for {ticker}. "
+                f"This might be due to:\n"
+                f"1. Rate limiting from Yahoo Finance\n"
+                f"2. Invalid ticker symbol\n"
+                f"3. Market is closed\n\n"
+                f"Please verify the ticker symbol or try again later. "
+                f"You can also check manually at "
+                f"https://finance.yahoo.com/quote/{ticker}"
+            )
             
     except Exception as e:
-        copilot_logger.error(f"Error getting stock price for {ticker}: {str(e)}")
-        return f"An error occurred while retrieving the stock price for {ticker}. Please try again or verify the ticker symbol."
+        error_msg = str(e)
+        if "429" in error_msg or "Too Many Requests" in error_msg:
+            return (
+                f"Yahoo Finance is currently rate-limiting requests. "
+                f"Please try again in a few minutes. For {ticker}, "
+                f"you can check the price manually at "
+                f"https://finance.yahoo.com/quote/{ticker}"
+            )
+        else:
+            copilot_logger.error(f"Error getting stock price for {ticker}: {error_msg}")
+            return (
+                f"An error occurred while retrieving the stock price for {ticker}. "
+                f"Error: {error_msg[:100]}... "
+                f"Please try again later or check manually at "
+                f"https://finance.yahoo.com/quote/{ticker}"
+            )
 
 
 def handle_sec_api_errors(error_message: str):
@@ -204,6 +264,7 @@ def retriever(query):
             )
 
         # Use LangChain to process the query with the SEC filing context
+        model = get_openai_model()
         chain = RunnableParallel({
             "question": lambda x: x["question"],
             "context": lambda x: x["context"]

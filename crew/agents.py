@@ -20,7 +20,12 @@ from langchain_openai import ChatOpenAI
 
 ss = st.session_state
 
-model = ChatOpenAI(model="gpt-3.5-turbo-16k", openai_api_key=ss.configurations["openai_api_key"])
+def get_openai_model():
+    """Get initialized OpenAI model with API key from session state."""
+    return ChatOpenAI(
+        model="gpt-3.5-turbo-16k", 
+        openai_api_key=ss.configurations["openai_api_key"]
+    )
 
 class InvestmentAgents():
 
@@ -31,7 +36,7 @@ class InvestmentAgents():
             backstory="""An expert financial analyst, capable of reading through company's SEC fillings
             to understand patterns in spend over the past three quarters.""",
             tools=[retrieval_tool],
-            llm=model,
+            llm=get_openai_model(),
             allow_delegation=False,
             # verbose=True
         )
@@ -42,7 +47,7 @@ class InvestmentAgents():
             goal="Find the current stock price of a company.",
             backstory="An expert stock market trader able to find out the current stock price of a company.",
             tools=[get_current_stock_price],
-            llm=model,
+            llm=get_openai_model(),
             allow_delegation=False,
             # verbose=True
         )
@@ -54,7 +59,7 @@ class InvestmentAgents():
             backstory="""An expert news analyst. Your expertise lies in getting relevant 
             news articles from the internet on a specific company.""",
             tools=[search_tool],
-            llm=model,
+            llm=get_openai_model(),
             # verbose=True
         )
     
@@ -64,6 +69,6 @@ class InvestmentAgents():
             goal="""Impress your customers with a robust company analysis.""",
             backstory="""An expert report writer, capable of writing financial articles for investors to highlights 
             key pieces of information to facilitate informed, data-driven investment decisions.""",
-            llm=model,
+            llm=get_openai_model(),
             # verbose=True
         )
