@@ -1,0 +1,38 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run SEC-copilot",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/venv/Scripts/streamlit",
+            "args": [
+                "run",
+                "app.py"
+            ],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "justMyCode": false
+        },
+        {
+            "name": "Debug SEC-copilot",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/venv/Scripts/streamlit",
+            "args": [
+                "run",
+                "app.py",
+                "--server.port=8502"
+            ],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "justMyCode": false
+        }
+    ]
+}

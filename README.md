@@ -26,7 +26,7 @@ Follow these steps to set up and run the service locally :
 - Streamlit
 - Git
 
-### Installation
+### Quick Setup (Auto-Activation) 🚀
 Clone the repository :
 
 ```
@@ -36,14 +36,30 @@ git clone https://github.com/Urias-T/SEC-copilot
 Navigate to the project directory :
 
 ```
-cd sec_copilot
+cd SEC-copilot
 ```
 
+**Option 1: PowerShell Auto-Setup**
+```
+.\activate.ps1
+```
+
+**Option 2: Command Prompt Auto-Setup**
+```
+activate.bat
+```
+
+**Option 3: VS Code**
+- Open the project in VS Code
+- The virtual environment will automatically activate
+- Use `Ctrl+Shift+P` and run "Tasks: Run Task" → "Run SEC-copilot"
+
+### Manual Setup
 Create a virtual environment :
 
 ```
 python -m venv venv
-venv/Scripts/activate
+venv\Scripts\activate
 ```
 
 Install the required dependencies in the virtual environment :
