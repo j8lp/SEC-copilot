@@ -2,9 +2,9 @@
 
 [Demo](https://www.loom.com/share/a3595d3042414380ba1bd193f4ca0b49?sid=4c441f24-8fea-48ee-b7d3-c4f14685f80b)
 
-An AI copilot allowing users ask natural language questions and get answers about SEC fillings of their choice companies | using Langchain🦜 | OpenAI | Streamlit ⚡| Kay 
+An AI copilot allowing users ask natural language questions and get answers about SEC fillings of their choice companies | using Langchain🦜 | OpenAI | Streamlit ⚡| SEC-API 
 
-To use this app, you would need API keys from [OpenAI](https://help.openai.com/en/articles/4936850-where-do-i-find-my-secret-api-key) and [Kay](https://kay.ai/)
+To use this app, you would need API keys from [OpenAI](https://help.openai.com/en/articles/4936850-where-do-i-find-my-secret-api-key) and [SEC-API](https://sec-api.io/signup)
 
 ## Architecture ⚙️
 
@@ -89,16 +89,16 @@ git clone https://github.com/Urias-T/SEC-copilot
 Navigate to the project directory :
 
 ```
-cd sec_copilot
+cd SEC-copilot
 ```
 
 Build the Docker image:
 
 ```
-docker build --build-arg OPENAI_API_KEY=<your_openai_api_key> --build-arg KAY_API_KEY=<your_kay_api_key> -t sec-copilot .
+docker build --build-arg OPENAI_API_KEY=<your_openai_api_key> --build-arg SEC_API_KEY=<your_sec_api_key> -t sec-copilot .
 ```
 
-*Remeber to replace <your_openai_api_key> and <your_kay_api_key> with your actual API keys*
+*Remember to replace <your_openai_api_key> and <your_sec_api_key> with your actual API keys*
 
 Run the Docker container:
 

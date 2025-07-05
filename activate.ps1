@@ -29,7 +29,7 @@ if (Test-Path $ActivateScript) {
     } else {
         Write-Host "⚠️  No .env file found. You may need to create one with your API keys:" -ForegroundColor Yellow
         Write-Host "   OPENAI_API_KEY=your_openai_key" -ForegroundColor Gray
-        Write-Host "   KAY_API_KEY=your_kay_key" -ForegroundColor Gray
+        Write-Host "   SEC_API_KEY=your_sec_api_key" -ForegroundColor Gray
     }
     
     Write-Host ""

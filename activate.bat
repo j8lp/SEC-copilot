@@ -24,7 +24,7 @@ if exist "%ACTIVATE_SCRIPT%" (
     ) else (
         echo ⚠️  No .env file found. You may need to create one with your API keys:
         echo    OPENAI_API_KEY=your_openai_key
-        echo    KAY_API_KEY=your_kay_key
+        echo    SEC_API_KEY=your_sec_api_key
     )
     
     echo.

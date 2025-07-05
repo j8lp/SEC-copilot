@@ -23,19 +23,19 @@ linkedin_url = "https://www.linkedin.com/in/triumph-urias/"
 def login():
 
     openai_api_key = os.environ.get("OPENAI_API_KEY")
-    kay_api_key = os.environ.get("KAY_API_KEY")
+    sec_api_key = os.environ.get("SEC_API_KEY")
 
-    if not openai_api_key or not kay_api_key:
-        app_logger.info("Did not find OpenAI and KayAI API keys in environment variables.")
+    if not openai_api_key or not sec_api_key:
+        app_logger.info("Did not find OpenAI and SEC API keys in environment variables.")
         # with st.sidebar:
         with st.form("config"):
             st.header("Configuration")
 
             openai_api_key = st.text_input("Enter your OpenAI API key:", placeholder="sk-xxx", type="password")
-            kay_api_key = st.text_input("Enter your Kay API key:", type="password")
+            sec_api_key = st.text_input("Enter your SEC API key:", type="password")
 
             st.markdown("Get your OpenAI API key [here](https://help.openai.com/en/articles/4936850-where-do-i-find-my-secret-api-key)")
-            st.markdown("Get your KAY API key [here](https://kay.ai/)")
+            st.markdown("Get your SEC API key [here](https://sec-api.io/signup)")
 
             st.sidebar.markdown(" ")
 
@@ -54,16 +54,16 @@ def login():
                 if validated:
                     ss.configurations = {
                         "openai_api_key": openai_api_key,
-                        "kay_api_key": kay_api_key
+                        "sec_api_key": sec_api_key
                     }
 
 
-    if ("OPENAI_API_KEY" in os.environ) and ("KAY_API_KEY" in os.environ):
-        app_logger.info("Found OpenAI and KAY_API_KEY in environment variables.")
+    if ("OPENAI_API_KEY" in os.environ) and ("SEC_API_KEY" in os.environ):
+        app_logger.info("Found OpenAI and SEC_API_KEY in environment variables.")
 
         ss.configurations = {
             "openai_api_key": openai_api_key,
-            "kay_api_key": kay_api_key
+            "sec_api_key": sec_api_key
         }
     
     info_placeholder = st.empty()
