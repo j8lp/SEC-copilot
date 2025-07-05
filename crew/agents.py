@@ -31,10 +31,12 @@ class InvestmentAgents():
 
     def fillings_researcher(self):
         return Agent(
-            role="Fillings Research Expert",
-            goal="Find the spending patterns in the company's spend over the past three quarters.",
-            backstory="""An expert financial analyst, capable of reading through company's SEC fillings
-            to understand patterns in spend over the past three quarters.""",
+            role="SEC Fillings Research Expert",
+            goal="Find and analyze financial information from company SEC filings to provide detailed, specific financial data and insights.",
+            backstory="""An expert financial analyst with deep expertise in reading and interpreting SEC filings.
+            You excel at extracting specific financial data, numbers, and insights from 10-K and 10-Q forms.
+            You always provide concrete financial figures, revenue numbers, expense breakdowns, and spending patterns.
+            You never just say you found information - you always share the actual data and numbers.""",
             tools=[retrieval_tool],
             llm=get_openai_model(),
             allow_delegation=False,

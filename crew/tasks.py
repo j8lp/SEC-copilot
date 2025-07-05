@@ -1,17 +1,33 @@
 from crewai import Task
 
 class InvestmentTasks():
-
-
     def fillings_research(self, agent, company):
         return Task(
-            description=f"""Use the tool provided to you to find out the spending patterns for {company} in the past three quarters.
-            
-            {self.__tip_section()}
-            
-            The input to your tool is a simple query like: `What is the spending pattern for {company} in the past three quarters.`
+            description=f"""Use the SEC API Filing Search tool to search for and analyze SEC filings for {company}.
+Search for the most recent financial information from:
+- Annual reports (10-K forms)
+- Quarterly reports (10-Q forms)
 
-            Your final answer MUST be a summary of the spending pattern.""",
+When you receive SEC filing information, you MUST:
+1. Extract and present specific financial data including:
+   - Revenue figures and growth trends
+   - Net income/profit numbers
+   - Total assets and liabilities
+   - Cash flow information
+   - Key financial ratios and metrics
+2. Mention the specific form types (10-K, 10-Q) and filing dates
+3. Provide direct links to the actual SEC filings for complete details
+4. If the tool doesn't return specific financial numbers, clearly state that 
+   the user should refer to the full filing documents
+
+DO NOT just say "the SEC API tool provided information" - you must extract and 
+present the actual financial data that was returned.
+
+{self.__tip_section()}
+
+Your final answer MUST include specific financial data and numbers from the SEC filings.
+If you cannot find specific financial figures in the tool results, clearly explain 
+what information is available and direct the user to the filing URLs for complete data.""",
             agent=agent
         )
     
