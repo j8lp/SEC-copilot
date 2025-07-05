@@ -1,6 +1,10 @@
 import os
 import logging
 import streamlit as st
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv(override=True)
 
 app_logger = logging.getLogger("app")
 app_logger.setLevel(logging.ERROR)
