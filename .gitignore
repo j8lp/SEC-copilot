@@ -11,5 +11,5 @@ venv/
 # cache
 __pycache__/
 
-# VS Code user-specific settings (keep project settings)
-.vscode/settings.json.user
+# VS Code configuration
+.vscode/
